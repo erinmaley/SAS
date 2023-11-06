@@ -1,0 +1,155 @@
+DATA SCHOOLEMP;
+input id $ gender $ degree $ yrsexp dept salary dollar9.0;
+
+format salary dollar9.0;
+
+
+datalines;
+108 M BS 4 1 $47,000
+111 M BS 27 1 $72,000
+222 F BS 8 7 $56,000
+238 F MS 10 2 $80,000
+239 M BS 8 2 $56,000
+241 M BS 2 5 $42,000
+278 M MS 18 3 $88,000
+364 M MS 14 4 $81,000
+385 F BS 5 4 $42,000
+419 F BS 9 1 $57,000
+483 M PHD 13 4 $97,000
+512 M MS 23 2 $85,000
+562 F PHD 22 4 $105,000
+676 M MS 25 4 $98,000
+703 F BS 11 3 $61,000
+728 M BS 11 3 $59,000
+735 F MS 7 3 $74,000
+891 M BS 21 3 $68,000
+976 M PHD 4 3 $85,000
+;
+proc sort data = schoolemp;
+by gender;
+run; 
+*/proc freq data=schoolemp;
+*by gender;
+*table degree/nocum;
+*run;
+proc freq data =schoolemp;
+table gender*degree; *order matters;
+run;
+*what percent are males? 63.16;
+*what percent have a Masters degree? 31.58;
+*what percent of teachers are male and have a Bachlers? 31.58;
+**P(MNMS) N = intersect (upside down U);
+*What is prob a teacher has a MS given he is male?33.33;
+**P(MS|Male)=33.33;
+*what is prob a teacher has is male given they have an BS? 60.00;
+**P(Male|BS)=60.00;
+*****P(Row var=x N Col var=Q )=percent
+P(Col var=Q|row var=x)=row percent
+P(Row var=x | Col var=Q)=col percent; 
+
+data position;
+input classification $ @@;
+datalines;
+teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher teacher
+admin admin admin admin admin
+support support support support
+;
+proc freq data = position;
+table classification;
+run;
+
+
+Data position2;
+Input classification $ count;
+Datalines;
+Teacher 19
+Admin 5
+Support 4
+;
+
+Proc Freq data = position2;
+Table classification;
+Weight count;
+**without weight it only counts it once;
+Run;
+
+Proc Gchart data = schoolemp;
+hbar3d degree;
+run;
+
+
+axis1 label=(a=45 "Number of Employees" ) minor=none order = (0 to 12 by 1) offset=(0,0);
+axis2 label=("degree of employee")  order=("PHD" "MS" "BS");
+
+proc gchart data= schoolemp;
+vbar3d degree /axis=axis1 maxis = axis2 inside=freq;
+vbar salary/ group= gender;
+run;
+
+Proc Gchart data = schoolemp;
+vbar salary / subgroup= gender;
+run;
+
+proc gchart data = schoolemp;
+vbar dept/discrete;
+run;
+
+Proc Gchart data = schoolemp;
+Title "Mean number of years of experience for each degree";
+vbar degree / sumvar = yrsexp type=mean;
+run;
+
+Proc gchart data = schoolemp;
+block gender / group=degree sumvar= salary type=mean;
+run;
+
+Proc Gchart data = schoolemp;
+Title "Teacher Salary by Gender";
+pie salary / group = gender;
+run;
+
+
+
+
+data chromo;
+input diet $ gith@@;
+datalines;
+
+lcdiet 42.3  lcdiet 51.5 lcdiet 53.7 lcdiet 48.0 lcdiet 56.0
+lcdiet 55.7 lcdiet 54.8 lcdiet 52.8 lcdiet 51.3 lcdiet 58.5 
+lcdiet 55.4 lcdiet 38.3 lcdiet 54.1 lcdiet 52.1
+normal 42.1 normal 30.7 normal 55.8 normal 55.1
+normal 47.5 normal 63.6 normal 57.8 normal 61.8
+normal 32.6 normal 53.7 
+;
+proc ttest data = chromo;
+class diet;
+var gith;
+*because o.6775>0.0196 fail to reject that the means are different, we dont have enough evidence to sat the means are different;
+*is it normally distrubuted no- it is left/neg scewed;
+*normal diet is not normally skewed either, small data size, left scewed. are medians same?;
+*top H0 on power points is better;
+run;
+
+proc npar1way wilcoxon;
+class diet;
+var gith;
+*use two sided for medium test- fail to reject (128.5)>0.8605 insufficient evidence;
+run;
+
+Data Caffeine;
+Input id $ baseline caffeine;
+Datalines;
+1 6.37 4.52
+2 5.69 5.44
+3 5.58 4.7
+4 5.27 3.81
+5 5.11 4.06
+6 4.89 3.22
+7 4.7 2.96
+8 3.53 3.2
+;
+
+Proc Ttest ;
+Paired baseline*caffeine;
+Run;
