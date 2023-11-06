@@ -1,0 +1,43 @@
+data toys;
+input playerlevel $ score @@;
+datalines;
+A 101 A 118 A 98 A 107 A 116 
+B 151 B 149 B 121 B 112 B 127 B 138
+C 119 C 109 C 198 C 186 C 160 C 134
+;
+proc anova;
+class playerlevel;
+model score = playerlevel;
+means playerlevel/snk;
+run;
+
+*not on slides>;
+
+*means playerlevel/snk;
+*means playerlevel/tukey;
+
+
+data aglevel;
+do music = "piano interlude","mozart";
+do stage = "early stage","middle stage";
+do subj = 1 to 5;
+	input levels @@;
+	output;
+	End;
+	End;
+	End;
+Datalines;
+21 24 22 18 20
+12 15 18 20 19
+9 7 9 8 12
+15 8 12 13 11
+;
+proc print data = aglevel;
+run;
+
+
+proc GLM;
+class music stage;
+model levels = music|stage;
+means music|stage;
+run;
