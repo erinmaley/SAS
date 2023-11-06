@@ -1,0 +1,187 @@
+*import the data into sas;
+Proc Import Out = fetalhealth 
+		datafile = "/home/u62191241/sasuser.v94/files/fetal_health.csv" 
+		DBMS= csv 
+		replace;	
+   			 
+Getnames = yes;
+*view the data;
+proc print data = fetalhealth;
+run;
+*view the contents of the data
+observed: 2125
+variables: 22
+all NUM type
+we are interested in fetal health, classified as 1 healthy, or 2,3 nonhealthy;
+proc contents data = fetalhealth;
+run;
+
+*perform a logical regression
+A logical regression is "used to predict the probability of a categorical dependent variable"
+source: https://communities.sas.com/t5/SAS-Communities-Library/A-Guide-to-Logistic-Regression-in-SAS/ta-p/564323
+
+*first we want to check the frequency of 1 classifion of fetal health;
+proc gchart data=fetalhealth;
+title "The Distribution of the Baseline Heart Rate by Fetal Health Category";
+vbar "baseline value"n/group = fetal_health;
+run;
+
+*bar plots for our variables;
+proc gchart data = fetalhealth;
+title "The Distribution of the Fetal Movement by Fetal Health Category";
+vbar fetal_movement/group = fetal_health;
+run;
+
+proc gchart data = fetalhealth;
+title "The Distribution of the Accelerations of Heart Rate by Fetal Health Category";
+vbar accelerations/group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs uterine contractions";
+vbar uterine_contractions/ group= fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs light decelerations";
+vbar light_decelerations/ group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs severe decelerations";
+vbar severe_decelerations/ group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs prolongued decelerations";
+vbar prolongued_decelerations/ group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs abnormal short term variability";
+vbar abnormal_short_term_variability/ group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs percentage of time with abnormal long term variability";
+vbar percentage_of_time_with_abnormal/ group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs mean value of short term variability";
+vbar mean_value_of_short_term_variabi/ group = fetal_health;
+run;
+
+proc gchart data=fetalhealth;
+title "fetal health vs mean value of long term variability";
+vbar mean_value_of_long_term_variabil/ group = fetal_health;
+run;
+
+*box plots for our variables;
+proc sort data = fetalhealth;
+by fetal_health;
+
+proc boxplot data = fetalhealth;
+plot fetal_movement*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot accelerations*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot uterine_contractions*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot light_decelerations*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot severe_decelerations*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot prolongued_decelerations*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot abnormal_short_term_variability*fetal_health;
+run;
+
+proc boxplot data = fetalhealth;
+plot baseline*fetal_health;
+run;
+*renaming the data to include baseline;
+Proc Import Out = fetalhealth1
+datafile = "/home/u62137516/sasuser.v94/fetal_health.csv"
+DBMS= csv
+replace;
+   Getnames = yes;
+proc print data = fetalhealth;
+run;
+
+proc contents data = fetalhealth;
+run;
+
+data fetalhealth;
+set fetalhealth1;
+rename "baseline value"n = baseline;
+run;
+*pie graph of all 3 variables;
+proc gchart data = fetalhealth;
+pie fetal_health/ other = 0
+midpoints = "1" "2" "3"
+value = none
+percent = arrow
+slice =arrow 
+noheading
+plabel = (font = 'Albany AMT/bold' h =1.3 color = black) ;
+run;
+*logistic plots of the variables;
+proc logistic plots = all;
+model fetal_health = "baseline value"n /risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = fetal_movement /risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = accelerations/risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = uterine_contractions/risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = light_decelerations/risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = severe_decelerations/risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = prolongued_decelerations/risklimits;
+run;
+
+proc logistic plots = all;
+model fetal_health = abnormal_short_term_variability/risklimits;
+run;
+
+*anova of accelerations;
+proc anova;
+class fetal_health;
+model accelerations = fetal_health;
+means fetal_health;
+run;
+
+*logistic plot for all variables;
+proc logistic data = fetalhealth plots = all;
+model fetal_health(ref = '1')= fetal_movement accelerations uterine_contractions 
+light_decelerations severe_decelerations prolongued_decelerations 
+abnormal_short_term_variability percentage_of_time_with_abnormal 
+mean_value_of_short_term_variabi mean_value_of_long_term_variabil/ risklimits selection= stepwise;
+run;
